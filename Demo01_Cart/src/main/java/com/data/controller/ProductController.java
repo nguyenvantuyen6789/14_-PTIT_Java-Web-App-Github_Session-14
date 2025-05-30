@@ -1,6 +1,7 @@
 package com.data.controller;
 
 import com.data.model.Product;
+import com.data.service.ProductService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,24 +14,18 @@ import java.util.stream.Collectors;
 
 @Controller
 public class ProductController {
-    private List<Product> products = new ArrayList<>();
 
-    public ProductController() {
-        Product product1 = new Product(1, "Hat", 1200);
-        Product product2 = new Product(2, "Car", 1400);
+    private ProductService productService;
 
-        products.add(product1);
-        products.add(product2);
+    public ProductController(ProductService productService) {
+        this.productService = productService;
     }
 
     @GetMapping("product-list")
     public String getAll(Model model,
                          HttpSession session) {
+        List<Product> products = productService.getAll();
         model.addAttribute("products", products);
-
-        List<Product> listProductCart = (List<Product>) session.getAttribute("cart");
-        System.out.println("listProductCart1");
-        System.out.println(listProductCart);
 
         return "product_list";
     }
@@ -38,6 +33,8 @@ public class ProductController {
     @GetMapping("product-detail/{id}")
     public String getDetail(@PathVariable int id,
                             Model model) {
+        List<Product> products = productService.getAll();
+
         List<Product> listResult = products.stream()
                 .filter(product -> product.getId() == id)
                 .collect(Collectors.toList());
@@ -58,13 +55,18 @@ public class ProductController {
             listProductCart = new ArrayList<>();
         }
 
-        List<Product> listResult = products.stream()
-                .filter(product -> product.getId() == id)
-                .collect(Collectors.toList());
-        Product product = listResult.get(0);
+        List<Product> products = productService.getAll();
 
-        // add product có id gửi lên vào list product cart
-        listProductCart.add(product);
+        long count = products.stream()
+                .filter(product -> product.getId() == id)
+                .count();
+        if (count == 0) {
+            Product product = products.stream().filter(o -> o.getId() == id)
+                    .findFirst().get();
+            // add product có id gửi lên vào list product cart
+            listProductCart.add(product);
+        }
+
         // add list product cart vào lại session (key=cart)
         session.setAttribute("cart", listProductCart);
 

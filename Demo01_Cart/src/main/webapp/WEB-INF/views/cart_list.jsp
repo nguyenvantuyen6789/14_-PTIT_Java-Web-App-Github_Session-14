@@ -17,6 +17,7 @@
             </tr>
         </thead>
         <tbody>
+<%--            <th:forEach items="${products}" var="item">--%>
             <c:forEach items="${products}" var="item">
                 <tr>
                     <td>${item.id}</td>
